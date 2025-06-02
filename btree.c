@@ -15,9 +15,9 @@ typedef struct NODE {
 Node* constructNode(){
     Node* nd=(Node*)malloc(sizeof(Node));
     nd->count_keys=0;
-    for(int i=0;i<degree+1;i++){
+    for(int i=0;i<degree+2;i++){
         nd->children[i]=NULL;
-        if(i<degree){
+        if(i<degree+1){
             nd->keys[i]=INT_MIN;
         }
     }
@@ -43,13 +43,15 @@ Node* sisterNode(Node* root){
     Node* sisterNode=constructNode();
     int i=0,j=degree/2+1;
     for(;j<=degree;j++,i++){
-        sisterNode->children[i]=root->children[j-1];
+        if(root->children[j])
+        sisterNode->children[i]=root->children[j];
         sisterNode->keys[i]=root->keys[j];
-        root->children[j-1]=NULL;
+        root->children[j]=NULL;
         root->keys[j]=INT_MIN;
-        //printf(" filling %d\n",sisterNode->children[i]);
     }
-    sisterNode->children[i]=root->children[j-1];
+    if(root->children[j]){
+        sisterNode->children[i]=root->children[j];
+    }
     sisterNode->count_keys=degree-degree/2;
     root->count_keys=degree/2;
     return sisterNode;
@@ -67,6 +69,7 @@ Node* check(Node* root,int curr_level){
     }
     return root;
 }
+
 
 void printer();
 
@@ -99,6 +102,7 @@ Node* insertNode(Node* root,int val,int curr_level){
                     root->children[j+1]=root->children[j];
                 }
                 root->keys[i]=root->children[i]->keys[degree/2];
+                root->count_keys++;
                 root->children[i+1]=sisterNode(root->children[i]);
             }
             return check(root,curr_level);
@@ -108,10 +112,11 @@ Node* insertNode(Node* root,int val,int curr_level){
     if(root->children[root->count_keys]->count_keys==degree+1){
         root->keys[root->count_keys]=root->children[root->count_keys]->keys[degree/2];
         root->children[root->count_keys+1]=sisterNode(root->children[root->count_keys]);
-       root->count_keys++;
+        root->count_keys++;
     }
     return check(root,curr_level);
 }
+
 
 
 // ...existing code...
@@ -161,12 +166,10 @@ void printer(Node* root) {
     while (!isEmpty(&q)) {
         Node* node = dequeue(&q);
         nodesInCurrentLevel--;
-        // Print all keys in this node
         for (int i = 0; i < node->count_keys; i++) {
             printf("%d ", node->keys[i]);
         }
         printf("| ");
-        // Enqueue all children for the next level
         for (int i = 0; i <= node->count_keys; i++) {
             if (node->children[i] != NULL) {
                 enqueue(&q, node->children[i]);
@@ -183,11 +186,11 @@ void printer(Node* root) {
 // ...existing code...
 int main(){
     Node* head=insertNode(NULL,10,level);
-    for(int i=-9;i<=91;i+=5){
+   printer(head);
+    for(int i=-9;i<=150;i+=5){
         head=insertNode(head,i,level);
        printer(head);
         printf("\n\n");
-       //printf("level is %d\n",level);
     }
-   printer(head);
+    //printer(head);
 }
